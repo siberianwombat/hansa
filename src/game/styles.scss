@@ -140,6 +140,9 @@ div#container-left {
       flex: 1 0 60%;
       box-sizing: border-box;
       width: 50%;
+      .row {
+        white-space: nowrap;
+      }
     }
     .markers {
       text-align: center;

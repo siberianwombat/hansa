@@ -795,11 +795,11 @@ export const PlayerQuickInfo = ({ player }: { player: PlayerState }) => {
       </div>
       <div className={`player-quickinfo ${player.color}`}>
         <div className="upgrades">
-          Acts: 2 {a > 1 ? 3 : "⬛"} {a > 2 ? 3 : "⬛"} {a > 3 ? 4 : "⬛"} {a > 4 ? 4 : "⬛"} {a > 5 ? 5 : "⬛"} <br />
-          Keys: 1 {k > 1 ? 2 : "⬛"} {k > 2 ? 2 : "⬛"} {k > 3 ? 3 : "⬛"} {k > 4 ? 4 : "⬛"} <br />
-          Bank: 3 {b > 1 ? 5 : "⬛"} {b > 2 ? 7 : "⬛"} {b > 3 ? "C" : "⬛"} <br />
-          Book: 2 {o > 1 ? "3" : "⚫"} {o > 2 ? "4" : "⚫"} {o > 3 ? "5" : "⚫"} <br />
-          Priv: ○ {p > 1 ? "🟠" : "⬛"} {p > 2 ? "🟣" : "⬛"} {p > 3 ? "⚫" : "⬛"}
+          <span className="row"> Acts: 2 {a > 1 ? 3 : "⬛"} {a > 2 ? 3 : "⬛"} {a > 3 ? 4 : "⬛"} {a > 4 ? 4 : "⬛"} {a > 5 ? 5 : "⬛"} </span><br />
+          <span className="row"> Keys: 1 {k > 1 ? 2 : "⬛"} {k > 2 ? 2 : "⬛"} {k > 3 ? 3 : "⬛"} {k > 4 ? 4 : "⬛"} </span><br />
+          <span className="row"> Bank: 3 {b > 1 ? 5 : "⬛"} {b > 2 ? 7 : "⬛"} {b > 3 ? "C" : "⬛"} </span><br />
+          <span className="row"> Book: 2 {o > 1 ? "3" : "⚫"} {o > 2 ? "4" : "⚫"} {o > 3 ? "5" : "⚫"} </span><br />
+          <span className="row"> Priv: ○ { p > 1 ? "🟠" : "⬛" } { p > 2 ? "🟣" : "⬛" } { p > 3 ? "⚫" : "⬛" }</span >
         </div>
         <div className="markers">
           {player.usedMarkers.length > 0 && <div className="inline-marker used">{player.usedMarkers.length}</div>}
