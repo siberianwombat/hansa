@@ -225,7 +225,7 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
           <PlayerControls />
         </div>
         <div id="container-right">
-          <div className={alertClasses} onClick={(e) => { disableAlertOverlay(); }}>
+          <div className={alertClasses} onClick={(e) => { disableAlertOverlay(); }} onMouseMove={(e) => { disableAlertOverlay(); }} >
             <div id="alert-text">{alertOverlayMsg}</div>
           </div>          
           <div id="gameinfo">
