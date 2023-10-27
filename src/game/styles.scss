@@ -212,7 +212,7 @@ div#container-left {
     }
 
     .next {
-      border: solid 3px black;
+      // border: solid 3px black;
       width: 15px;
       height: 15px;
     }
@@ -314,6 +314,26 @@ div.token {
 
 .trading-post {
   cursor: pointer;
+}
+
+.green .next {
+  border: solid 2px red;
+}
+
+.blue .next {
+  border: solid 2px red;
+}
+
+.purple .next {
+  border: solid 2px green;
+}
+
+.red .next {
+  border: solid 2px green;
+}
+
+.yellow .next {
+  border: solid 2px black;
 }
 
 .blink-me {
