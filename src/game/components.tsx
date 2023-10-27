@@ -27,11 +27,13 @@ const PostRadius = 14;
 type UIState = {
   merch: boolean;
   setMerch: (merch: boolean) => void;
+  highlighted: string[],
+  setHighlighted: (highlighted: string[]) => void;
 };
 
 const ControllerContext = React.createContext<{ controller: GameController; ui: UIState }>({
   controller: defaultController,
-  ui: { merch: false, setMerch: () => {} },
+  ui: { merch: false, setMerch: () => {}, highlighted: ["", ""], setHighlighted: () => {} },
 });
 
 const usePanZoom = (rebind = false) => {
@@ -116,7 +118,7 @@ export const Map = () => {
           error: "",
           clearError: () => {},
         },
-        ui: { merch: false, setMerch: () => {} },
+        ui: { merch: false, setMerch: () => { }, highlighted: [], setHighlighted: () => {} },
       }}
     >
       <div id="container">
@@ -148,6 +150,7 @@ export const Map = () => {
                 from={map.cities[r.from].position}
                 to={map.cities[r.to].position}
                 posts={r.posts}
+                highlight={false}
               />
             ))}
             {Object.values(map.cities).map((city) => (
@@ -172,6 +175,7 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
   const [err, setErr] = useState("");
   const [alertState, setAlertState] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [highlighted, setHighlighted] = useState(["", ""]);
 
   useEffect(() => {
     if (player) {
@@ -219,7 +223,7 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
   const alertClasses = alertState ? "alert-overlay" : "hide";
 
   return (
-    <ControllerContext.Provider value={{ controller: ctrl, ui: { merch, setMerch } }}>
+    <ControllerContext.Provider value={{ controller: ctrl, ui: { merch, setMerch, highlighted, setHighlighted } }}>
       <div id="container">
         <div id="container-left">
           <PlayerControls />
@@ -264,6 +268,7 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
                   from={map.cities[r.from].position}
                   to={map.cities[r.to].position}
                   posts={r.posts}
+                  highlight={r.from === highlighted[0] && r.to === highlighted[1]}
                 />
               ))}
               {Object.values(map.cities).map((city) => (
@@ -273,8 +278,31 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
           </svg>
           <div id="log" ref={refLog}>
             {ctrl.state.log.map((e, i) => (
-              <div key={i} className={`message`} style={{ color: playerColor(players[e.player]?.color || "black") }}>
-                {e.message}
+              <div key={i} className={`message`} style={{ color: playerColor(players[e.player]?.color || "black") }}
+              onMouseOver={() => {
+                const r = map.routes.find((r) => e.message.includes(`${r.from} - ${r.to}`));
+                console.log('found route', r);
+                if (r) { 
+                  setHighlighted([r.from, r.to]) 
+                } else { 
+                  setHighlighted(["", ""]);
+                }
+              }}
+
+              onMouseOut={() => {
+                setHighlighted(["", ""]);
+              }}
+
+              onClick={() => {
+                const r = map.routes.find((r) => e.message.includes(`${r.from} - ${r.to}`));
+                if (r) {
+                  setHighlighted([r.from, r.to])
+                } else {
+                  setHighlighted(["", ""]);
+                }
+              }}
+              >
+                <span className="messageLink">{e.message}</span>
               </div>
             ))}
           </div>
@@ -519,11 +547,13 @@ export const RouteComponent = ({
   to,
   posts,
   index,
+  highlight
 }: {
   index: number;
   from: [number, number];
   to: [number, number];
   posts: number;
+  highlight: boolean
 }) => {
   const { controller } = useContext(ControllerContext);
   const { state, action } = controller;
@@ -590,7 +620,7 @@ export const RouteComponent = ({
 
   return (
     <g>
-      <path d={`M${from[0]} ${from[1]} L${to[0]} ${to[1]}`} stroke="gray" strokeWidth="10" />
+      <path d={`M${from[0]} ${from[1]} L${to[0]} ${to[1]}`} stroke={highlight ? "red" : "gray"} strokeWidth="10" />
 
       {isRouteFull && controller.playerId === getPlayer(state).id && (
         <g className="complete-route" onClick={() => action("route", { route: index })}>
