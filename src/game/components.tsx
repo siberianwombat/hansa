@@ -178,7 +178,7 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
   const [alertState, setAlertState] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
   const [highlighted, setHighlighted] = useState(["", ""]);
-  const [highlightedCity, setHighlightedCity]  = useState("Bremen");
+  const [highlightedCity, setHighlightedCity]  = useState("");
 
   useEffect(() => {
     if (player) {
