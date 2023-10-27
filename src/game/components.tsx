@@ -29,11 +29,13 @@ type UIState = {
   setMerch: (merch: boolean) => void;
   highlighted: string[],
   setHighlighted: (highlighted: string[]) => void;
+  highlightedCity: string,
+  setHighlightedCity: (highlightedCity: string) => void;
 };
 
 const ControllerContext = React.createContext<{ controller: GameController; ui: UIState }>({
   controller: defaultController,
-  ui: { merch: false, setMerch: () => {}, highlighted: ["", ""], setHighlighted: () => {} },
+  ui: { merch: false, setMerch: () => { }, highlighted: ["", ""], setHighlighted: () => { }, highlightedCity: "", setHighlightedCity: () => { } },
 });
 
 const usePanZoom = (rebind = false) => {
@@ -118,7 +120,7 @@ export const Map = () => {
           error: "",
           clearError: () => {},
         },
-        ui: { merch: false, setMerch: () => { }, highlighted: [], setHighlighted: () => {} },
+        ui: { merch: false, setMerch: () => { }, highlighted: [], setHighlighted: () => { }, highlightedCity: "", setHighlightedCity: () => { } },
       }}
     >
       <div id="container">
@@ -176,6 +178,7 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
   const [alertState, setAlertState] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
   const [highlighted, setHighlighted] = useState(["", ""]);
+  const [highlightedCity, setHighlightedCity]  = useState("Bremen");
 
   useEffect(() => {
     if (player) {
@@ -223,7 +226,7 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
   const alertClasses = alertState ? "alert-overlay" : "hide";
 
   return (
-    <ControllerContext.Provider value={{ controller: ctrl, ui: { merch, setMerch, highlighted, setHighlighted } }}>
+    <ControllerContext.Provider value={{ controller: ctrl, ui: { merch, setMerch, highlighted, setHighlighted, highlightedCity, setHighlightedCity } }}>
       <div id="container">
         <div id="container-left">
           <PlayerControls />
@@ -272,7 +275,7 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
                 />
               ))}
               {Object.values(map.cities).map((city) => (
-                <CityComponent key={city.name} cityName={city.name} />
+                <CityComponent key={city.name} cityName={city.name} highlighted={highlightedCity==city.name} />
               ))}
             </g>
           </svg>
@@ -281,28 +284,45 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
               <div key={i} className={`message`} style={{ color: playerColor(players[e.player]?.color || "black") }}
               onMouseOver={() => {
                 const r = map.routes.find((r) => e.message.includes(`${r.from} - ${r.to}`));
-                console.log('found route', r);
                 if (r) { 
                   setHighlighted([r.from, r.to]) 
+                  setHighlightedCity(r.from);
                 } else { 
                   setHighlighted(["", ""]);
+                  // find city
+                  const foundCity = Object.values(map.cities).find((city) => e.message.includes(city.name));
+                  if (foundCity) {
+                    setHighlightedCity(foundCity.name);
+                  } else {
+                    setHighlightedCity("");
+                  }                  
                 }
               }}
 
               onMouseOut={() => {
                 setHighlighted(["", ""]);
+                setHighlightedCity("");
               }}
 
               onClick={() => {
                 const r = map.routes.find((r) => e.message.includes(`${r.from} - ${r.to}`));
                 if (r) {
                   setHighlighted([r.from, r.to])
+                  setHighlightedCity(r.from);
                 } else {
                   setHighlighted(["", ""]);
+                  // find city
+                  const foundCity = Object.values(map.cities).find((city) => e.message.includes(city.name));
+                  if (foundCity) {
+                    setHighlightedCity(foundCity.name);
+                  } else {
+                    setHighlightedCity("");
+                  }
                 }
               }}
               >
-                <span className="messageLink" dangerouslySetInnerHTML={
+                <span className="messageLink" 
+                dangerouslySetInnerHTML={
                   {__html:e.message.replace(new RegExp("([a-zA-Z]+ - [a-zA-Z]+)"), "<strong>$1</strong>")}
                 }></span>
               </div>
@@ -483,7 +503,7 @@ export const OfficeComponent = ({ office, order, city }: { office: Office | null
   );
 };
 
-export const CityComponent = ({ cityName }: { cityName: string }) => {
+export const CityComponent = ({ cityName, highlighted}: { cityName: string, highlighted:boolean }) => {
   const { controller } = useContext(ControllerContext);
   const { state } = controller;
   const city = state.map.cities[cityName];
@@ -491,12 +511,23 @@ export const CityComponent = ({ cityName }: { cityName: string }) => {
   const cityWidth = (city.offices.length + extras.length) * (OfficeWidth + Margin) + Margin;
   const x = city.position[0] - cityWidth / 2;
   const y = city.position[1] - (CityHeight + FontSize / 2) / 2;
+  const highlightWidth = 10;
 
   const owner = state.players[cityOwner(state, cityName)];
 
   return (
     <g className="city-group" style={{ transform: `translate(${x}px,${y}px)` }}>
       <g>
+        {highlighted && (<rect
+          x={-highlightWidth}
+          y={-highlightWidth}
+          width={cityWidth + 2 * highlightWidth}
+          height={CityHeight + 2 * highlightWidth}
+          rx="6"
+          fill={CityColorMap(city.color)}
+          stroke="red"
+          strokeWidth={highlightWidth}
+        />)}
         <rect
           width={cityWidth}
           height={CityHeight}
@@ -514,7 +545,7 @@ export const CityComponent = ({ cityName }: { cityName: string }) => {
       </g>
       <text
         className="title"
-        fill="white"
+        fill={highlighted ? "white" : "white"}
         stroke={owner ? playerColor(owner.color) : "black"}
         strokeWidth="7"
         fontSize={FontSize}
