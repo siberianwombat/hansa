@@ -156,7 +156,7 @@ export const Map = () => {
               />
             ))}
             {Object.values(map.cities).map((city) => (
-              <CityComponent key={city.name} cityName={city.name} />
+              <CityComponent key={city.name} cityName={city.name} highlighted={false} />
             ))}
           </g>
         </svg>
