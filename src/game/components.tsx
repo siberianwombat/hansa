@@ -302,7 +302,9 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
                 }
               }}
               >
-                <span className="messageLink">{e.message}</span>
+                <span className="messageLink" dangerouslySetInnerHTML={
+                  {__html:e.message.replace(new RegExp("([a-zA-Z]+ - [a-zA-Z]+)"), "<strong>$1</strong>")}
+                }></span>
               </div>
             ))}
           </div>
