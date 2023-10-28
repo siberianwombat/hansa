@@ -29,13 +29,11 @@ type UIState = {
   setMerch: (merch: boolean) => void;
   highlighted: string[],
   setHighlighted: (highlighted: string[]) => void;
-  highlightedCity: string,
-  setHighlightedCity: (highlightedCity: string) => void;
 };
 
 const ControllerContext = React.createContext<{ controller: GameController; ui: UIState }>({
   controller: defaultController,
-  ui: { merch: false, setMerch: () => { }, highlighted: ["", ""], setHighlighted: () => { }, highlightedCity: "", setHighlightedCity: () => { } },
+  ui: { merch: false, setMerch: () => { }, highlighted: ["", ""], setHighlighted: () => { } },
 });
 
 const usePanZoom = (rebind = false) => {
@@ -120,7 +118,7 @@ export const Map = () => {
           error: "",
           clearError: () => {},
         },
-        ui: { merch: false, setMerch: () => { }, highlighted: [], setHighlighted: () => { }, highlightedCity: "", setHighlightedCity: () => { } },
+        ui: { merch: false, setMerch: () => { }, highlighted: [], setHighlighted: () => { } },
       }}
     >
       <div id="container">
@@ -178,8 +176,8 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
   const [alertState, setAlertState] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
   const [logLength, setLogLength] = useState(0);
-  const [highlighted, setHighlighted] = useState(["", ""]);
-  const [highlightedCity, setHighlightedCity]  = useState("");
+  const [highlighted, setHighlighted] = useState([""]);
+  // const [highlightedCity, setHighlightedCity]  = useState("");
 
   useEffect(() => {
     if (player) {
@@ -210,6 +208,7 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
 
   const me = ctrl.state.players.find((p) => p.id === playerId)!;
   const currentPlayer = getPlayer(ctrl.state);
+  const cityNamesRegex = new RegExp('(' + Object.values(map.cities).map((city) => city.name).join('|') + ')', "g") 
 
   if (initialLoad && me === currentPlayer) {
     setAlertState(true);
@@ -228,7 +227,7 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
   const alertClasses = alertState ? "alert-overlay" : "hide";
 
   return (
-    <ControllerContext.Provider value={{ controller: ctrl, ui: { merch, setMerch, highlighted, setHighlighted, highlightedCity, setHighlightedCity } }}>
+    <ControllerContext.Provider value={{ controller: ctrl, ui: { merch, setMerch, highlighted, setHighlighted } }}>
       <div id="container">
         <div id="container-left">
           <PlayerControls />
@@ -273,11 +272,11 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
                   from={map.cities[r.from].position}
                   to={map.cities[r.to].position}
                   posts={r.posts}
-                  highlight={r.from === highlighted[0] && r.to === highlighted[1]}
+                  highlight={highlighted.includes(r.from) && highlighted.includes(r.to)}
                 />
               ))}
               {Object.values(map.cities).map((city) => (
-                <CityComponent key={city.name} cityName={city.name} highlighted={highlightedCity==city.name} />
+                <CityComponent key={city.name} cityName={city.name} highlighted={highlighted.includes(city.name)} />
               ))}
             </g>
           </svg>
@@ -285,47 +284,22 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
             {ctrl.state.log.map((e, i) => (
               <div key={i} className={`message`} style={{ color: playerColor(players[e.player]?.color || "black") }}
               onMouseOver={() => {
-                const r = map.routes.find((r) => e.message.includes(`${r.from} - ${r.to}`));
-                if (r) { 
-                  setHighlighted([r.from, r.to]) 
-                  setHighlightedCity(r.from);
-                } else { 
-                  setHighlighted(["", ""]);
-                  // find city
-                  const foundCity = Object.values(map.cities).find((city) => e.message.includes(city.name));
-                  if (foundCity) {
-                    setHighlightedCity(foundCity.name);
-                  } else {
-                    setHighlightedCity("");
-                  }                  
-                }
+                const r = Object.values(map.cities).filter((city) => e.message.includes(city.name) ).map((city) => city.name);
+                setHighlighted(r ? r : [""]);
               }}
 
               onMouseOut={() => {
-                setHighlighted(["", ""]);
-                setHighlightedCity("");
+                setHighlighted([""]);
               }}
 
               onClick={() => {
-                const r = map.routes.find((r) => e.message.includes(`${r.from} - ${r.to}`));
-                if (r) {
-                  setHighlighted([r.from, r.to])
-                  setHighlightedCity(r.from);
-                } else {
-                  setHighlighted(["", ""]);
-                  // find city
-                  const foundCity = Object.values(map.cities).find((city) => e.message.includes(city.name));
-                  if (foundCity) {
-                    setHighlightedCity(foundCity.name);
-                  } else {
-                    setHighlightedCity("");
-                  }
-                }
+                const r = Object.values(map.cities).filter((city) => e.message.includes(city.name)).map((city) => city.name);
+                setHighlighted(r ? r : [""]);
               }}
               >
                 <span className="messageLink" 
                 dangerouslySetInnerHTML={
-                  {__html:e.message.replace(new RegExp("([a-zA-Z]+ - [a-zA-Z]+)"), "<strong>$1</strong>")}
+                  { __html: e.message.replaceAll(cityNamesRegex, "<strong>$1</strong>")}
                 }></span>
               </div>
             ))}
