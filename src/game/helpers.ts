@@ -270,6 +270,39 @@ export const totalPoints = (s: GameState, index: number) => {
   );
 };
 
+/*
+ ┌─name───────┬─total─┬─points─┬─network─┬─control─┬─upgrades─┬─markers─┬─barrels─┐
+ └────────────┴───────┴────────┴─────────┴─────────┴──────────┴─────────┴─────────┘
+ */
+
+export const totalPointsDetails = (s: GameState, index: number) => {
+  const p = s.players[index];
+  const m = p.usedMarkers.length + p.readyMarkers.length;
+  const trimmedName = p.name.substring(0, 9);
+  const result = {
+    markers: m > 9 ? 21 : m > 7 ? 15 : m > 5 ? 10 : m > 3 ? 6 : m > 1 ? 3 : m > 0 ? 1 : 0,
+    upgrades: (p.book === 4 ? 4 : 0) +
+      (p.bank === 4 ? 4 : 0) +
+      (p.privilege === 4 ? 4 : 0) +
+      (p.actions === 6 ? 4 : 0),
+    network: largestNetwork(s, index) * (p.keys > 4 ? 4 : p.keys > 3 ? 3 : p.keys > 1 ? 2 : 1),
+    barrels: s.coellen.map((t, i) => (t === index ? [7, 8, 9, 11][i] : 0)).reduce((a, b) => a + b),
+    control: (Object.keys(s.cities).map((c) => (cityOwner(s, c) === index ? 2 : 0)) as number[]).reduce((a, b) => a + b),
+  }
+
+  const total = p.points + result.markers + result.upgrades + result.barrels + result.network + result.control;
+
+  return '| ' + (" ".repeat(10 - trimmedName.length)) + trimmedName 
+    + " | " + (" ".repeat(5 - (total > 9 ? 2 : 1))) + (total > 0 ? total : '-')
+    + " | " + (" ".repeat(6 - (p.points > 9 ? 2 : 1))) + (p.points > 0 ? p.points : '-')
+    + " | " + (" ".repeat(7 - (result.network > 9 ? 2 : 1))) + (result.network > 0 ? result.network : '-')
+    + " | " + " ".repeat(7 - (result.control > 9 ? 2 : 1)) + (result.control > 0 ? result.control : '-')
+    + " | " + " ".repeat(8 - (result.upgrades > 9 ? 2 : 1)) + (result.upgrades > 0 ? result.upgrades : '-')
+    + " | " + " ".repeat(7 - (result.markers > 9 ? 2 : 1)) + (result.markers > 0 ? result.markers : '-')
+    + " | " + " ".repeat(7 - (result.barrels > 9 ? 2 : 1)) + (result.barrels > 0 ? result.barrels : '-')
+    + " |";
+}
+
 /**
  * Returns the city owner.
  * If nobody owns it, returns -1;

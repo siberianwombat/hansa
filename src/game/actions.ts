@@ -7,6 +7,7 @@ import {
   getPlayer,
   getPost,
   incomeValue,
+  totalPointsDetails,
 } from "./helpers";
 import { ActionName, ActionParams, PhaseContext, GameState, TokenState, Reward, ActionRecord } from "./model";
 
@@ -15,6 +16,25 @@ import { ActionName, ActionParams, PhaseContext, GameState, TokenState, Reward, 
  * The action can mutate the state and should return a new "PhaseState".
  */
 export const executeAction = <T extends ActionName>(
+  name: T,
+  state: GameState,
+  params?: ActionParams<T>
+): PhaseContext => {
+  const res = executeActionDo(name, state, params);
+  if (res.endGame) {
+    state.log.push({ player: -1, message: "┌────name────┬─total─┬─points─┬─network─┬─control─┬─upgrades─┬─markers─┬─barrels─┐"});
+    state.players.map((p, i) => {
+      state.log.push({
+        player: i, 
+        message: totalPointsDetails(state, i)
+      })
+    })
+    state.log.push({ player: -1, message: "└────────────┴───────┴────────┴─────────┴─────────┴──────────┴─────────┴─────────┘"})
+  }
+  return res;
+}
+
+export const executeActionDo = <T extends ActionName>(
   name: T,
   state: GameState,
   params?: ActionParams<T>
