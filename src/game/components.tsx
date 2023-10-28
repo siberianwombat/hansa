@@ -23,6 +23,7 @@ const CityHeight = 60;
 const OfficeWidth = 40;
 const Margin = 8;
 const PostRadius = 14;
+var lastScrollTSvar = 0;
 
 type UIState = {
   merch: boolean;
@@ -177,6 +178,7 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
   const [err, setErr] = useState("");
   const [alertState, setAlertState] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [scrollToLast, setScrollToLast] = useState(true);
   const [highlighted, setHighlighted] = useState(["", ""]);
   const [highlightedCity, setHighlightedCity]  = useState("");
 
@@ -184,8 +186,8 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
     if (player) {
       setMerch((player.personalSupply.m > 0 && merch) || player.personalSupply.t === 0);
     }
-    if (refLog.current) {
-      refLog.current.scrollTop = 100000; // scroll to end
+    if (refLog.current && scrollToLast) {
+      refLog.current.scrollTop = 100000; // scroll to end      
     }
   });
 
@@ -279,7 +281,14 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
               ))}
             </g>
           </svg>
-          <div id="log" ref={refLog}>
+          <div id="log" ref={refLog} onScroll={() => {
+            lastScrollTSvar = new Date().getTime();
+            if (scrollToLast) setScrollToLast(false);
+            setTimeout(() => {
+              const now = new Date().getTime();
+              if (!scrollToLast && now - lastScrollTSvar > 5000-100) setScrollToLast(true);
+            }, 5000);
+          }}>
             {ctrl.state.log.map((e, i) => (
               <div key={i} className={`message`} style={{ color: playerColor(players[e.player]?.color || "black") }}
               onMouseOver={() => {
