@@ -66,7 +66,7 @@ function HomePage() {
         />
       </div>
       <div className="player-conf">
-        <span>Yellow</span>
+        <span>Brown</span>
         <input
           maxLength={8}
           value={players.yellow || ""}

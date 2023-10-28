@@ -15,7 +15,7 @@ import {
 import { defaultController, GameController, useController } from "./controller";
 
 // Nice yellow: #EEBC1D
-const playerColor = (color: Color) => (color === "yellow" ? "#D4AF37" : color);
+const playerColor = (color: Color) => (color === "yellow" ? "#954535" : color);
 const PrivilegeColorMap = ["white", "#F2AC29", "rgb(255, 145, 207)", "gray"];
 const CityColorMap = (color: City["color"]) => (color === "red" ? "#faa" : color === "yellow" ? "#ffa" : "white");
 const FontSize = 24;
