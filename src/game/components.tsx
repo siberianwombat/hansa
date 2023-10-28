@@ -23,7 +23,6 @@ const CityHeight = 60;
 const OfficeWidth = 40;
 const Margin = 8;
 const PostRadius = 14;
-var lastScrollTSvar = 0;
 
 type UIState = {
   merch: boolean;
@@ -178,7 +177,7 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
   const [err, setErr] = useState("");
   const [alertState, setAlertState] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
-  const [scrollToLast, setScrollToLast] = useState(true);
+  const [logLength, setLogLength] = useState(0);
   const [highlighted, setHighlighted] = useState(["", ""]);
   const [highlightedCity, setHighlightedCity]  = useState("");
 
@@ -186,8 +185,9 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
     if (player) {
       setMerch((player.personalSupply.m > 0 && merch) || player.personalSupply.t === 0);
     }
-    if (refLog.current && scrollToLast) {
-      refLog.current.scrollTop = 100000; // scroll to end      
+    if (refLog.current && ctrl && ctrl?.state.log.length != logLength ) {
+      refLog.current.scrollTop = 100000; // scroll to end
+      setLogLength(ctrl?.state.log.length);
     }
   });
 
@@ -281,14 +281,7 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
               ))}
             </g>
           </svg>
-          <div id="log" ref={refLog} onScroll={() => {
-            lastScrollTSvar = new Date().getTime();
-            if (scrollToLast) setScrollToLast(false);
-            setTimeout(() => {
-              const now = new Date().getTime();
-              if (!scrollToLast && now - lastScrollTSvar > 5000-100) setScrollToLast(true);
-            }, 5000);
-          }}>
+          <div id="log" ref={refLog}>
             {ctrl.state.log.map((e, i) => (
               <div key={i} className={`message`} style={{ color: playerColor(players[e.player]?.color || "black") }}
               onMouseOver={() => {
@@ -503,7 +496,7 @@ export const OfficeComponent = ({ office, order, city }: { office: Office | null
         ))}
       {office && office.point && (
         <text className="title" fill="black" fontSize="20" fontFamily="Monospace" fontWeight="800" letterSpacing="0em">
-          <tspan textAnchor="middle" x={left + OfficeWidth / 2} y={top + OfficeWidth / 2 + 6}>
+          <tspan textAnchor="middle" x={left + OfficeWidth / 2} y={top + OfficeWidth / 2 + 6} onClick={claim}>
             1
           </tspan>
         </text>
