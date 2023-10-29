@@ -20,25 +20,6 @@ export const executeAction = <T extends ActionName>(
   state: GameState,
   params?: ActionParams<T>
 ): PhaseContext => {
-  const res = executeActionDo(name, state, params);
-  if (res.endGame) {
-    state.log.push({ player: -1, message: "┌────name────┬─total─┬─points─┬─network─┬─control─┬─upgrades─┬─markers─┬─barrels─┐"});
-    state.players.map((p, i) => {
-      state.log.push({
-        player: i, 
-        message: totalPointsDetails(state, i)
-      })
-    })
-    state.log.push({ player: -1, message: "└────────────┴───────┴────────┴─────────┴─────────┴──────────┴─────────┴─────────┘"})
-  }
-  return res;
-}
-
-export const executeActionDo = <T extends ActionName>(
-  name: T,
-  state: GameState,
-  params?: ActionParams<T>
-): PhaseContext => {
   switch (name) {
     case "income":
       return IncomeAction(state);
@@ -98,6 +79,17 @@ export const DoneAction = (s: GameState) => {
 
   if (s.context.phase === "Displacement") {
     return s.context.prev!;
+  }
+
+  if (s.isOver) {
+    s.log.push({ player: -1, message: "┌────name────┬─total─┬─points─┬─network─┬─control─┬─upgrades─┬─markers─┬─barrels─┐" });
+    s.players.map((p, i) => {
+      s.log.push({
+        player: i,
+        message: totalPointsDetails(s, i)
+      })
+    })
+    s.log.push({ player: -1, message: "└────────────┴───────┴────────┴─────────┴─────────┴──────────┴─────────┴─────────┘" })
   }
 
   s.turn += 1;
