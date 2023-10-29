@@ -328,7 +328,10 @@ export const PlayerControls = () => {
   return (
     <div className={`player-controls`}>
       <div className="phase-info">
-        {me !== currentPlayer
+        {
+          state.isOver
+          ? `Game is over`
+          : me !== currentPlayer
           ? `It's ${currentPlayer.name}'s turn`
           : phase === "Actions"
           ? acts

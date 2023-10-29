@@ -81,6 +81,8 @@ export const DoneAction = (s: GameState) => {
     return s.context.prev!;
   }
 
+  s.turn += 1;
+
   if (s.isOver) {
     s.log.push({ player: -1, message: "┌────name────┬─total─┬─points─┬─network─┬─control─┬─upgrades─┬─markers─┬─barrels─┐" });
     s.players.map((p, i) => {
@@ -90,13 +92,13 @@ export const DoneAction = (s: GameState) => {
       })
     })
     s.log.push({ player: -1, message: "└────────────┴───────┴────────┴─────────┴─────────┴──────────┴─────────┴─────────┘" })
+  } else {
+    s.log.push({
+      message: `It's ${s.players[s.turn % s.players.length].name}'s turn`,
+      player: s.turn % s.players.length,
+    });
   }
 
-  s.turn += 1;
-  s.log.push({
-    message: `It's ${s.players[s.turn % s.players.length].name}'s turn`,
-    player: s.turn % s.players.length,
-  });
   return {
     phase: "Actions",
     player: s.turn % s.players.length,
