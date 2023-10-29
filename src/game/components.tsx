@@ -11,6 +11,8 @@ import {
   getPlayer,
   incomeValue,
   totalPoints,
+  pointsForBonusCitiesPresence,
+  pointsForBonusCitiesOwned,
 } from "./helpers";
 import { defaultController, GameController, useController } from "./controller";
 
@@ -799,6 +801,40 @@ export const InlineMarker = ({ kind }: { kind: BonusMarkerKind }) => {
   );
 };
 
+export const BonusCityName = ({cityName}: {cityName: string}) => {
+  const { ui, controller } = useContext(ControllerContext);
+  return (
+    <span className="bonus-city" 
+    onMouseOver={() => {
+      ui.setHighlighted([cityName])
+    }} 
+    onClick={() => {
+      ui.setHighlighted([cityName])
+    }}     
+    onMouseOut={() =>
+      ui.setHighlighted([''])
+    }>{cityName}&nbsp;</span>  )
+}
+
+export const BonusCityCard = ({ player }: { player: PlayerState }) => {
+  const { ui, controller } = useContext(ControllerContext);
+  const cardsList = ["Minden", "Hildesheim", "Luneburg"];
+  const presencePoints = pointsForBonusCitiesPresence(controller.state, controller.state.players.findIndex((p) => p === player), cardsList);
+  const controlPoints = pointsForBonusCitiesOwned(controller.state, controller.state.players.findIndex((p) => p === player), cardsList);;
+
+  return (
+    <div className="exp-card">
+      Bonus:&nbsp;
+      {cardsList.map((cityName) => (
+        <BonusCityName cityName={cityName} />
+      ))}
+      <br />
+      presence (+1 VP/each): {presencePoints}<br />
+      control all (+5VP): {controlPoints}
+    </div>
+  )
+}
+
 export const PlayerQuickInfo = ({ player }: { player: PlayerState }) => {
   const { ui, controller } = useContext(ControllerContext);
 
@@ -873,7 +909,12 @@ export const PlayerQuickInfo = ({ player }: { player: PlayerState }) => {
             <InlineMarker key={i} kind={kind} />
           ))}
         </div>
-      </div>
+      </div> {
+        (getPlayer(state).id === player.id || state.isOver) && 
+        (
+          <BonusCityCard player={player} />
+        )
+      }
     </div>
   );
 };

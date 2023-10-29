@@ -303,6 +303,39 @@ export const totalPointsDetails = (s: GameState, index: number) => {
     + " |";
 }
 
+export const pointsForBonusCitiesPresence = (s: GameState, index: number, cityNames: string[]) => {
+  return bonusCitiesPresence(s, index, cityNames)
+}
+
+export const bonusCitiesPresence = (s: GameState, index: number, cityNames: string[]) => {
+  const presence: {[key: string]: boolean } = {};
+  for (const cityIndex in cityNames) {
+    const city = cityNames[cityIndex];
+    const count =
+      s.cities[city].tokens.filter((t) => t?.owner === index).length +
+      s.cities[city].extras.filter((t) => t?.owner === index).length;
+    if (count) {
+      presence[city] = true;
+    }
+  }
+  return Object.keys(presence).length
+}
+
+export const pointsForBonusCitiesOwned = (s: GameState, index: number, cityNames: string[]) => {
+  return (bonusCitiesOwned(s, index, cityNames) === 3 ? 5 : 0);
+}
+
+export const bonusCitiesOwned = (s: GameState, index: number, cityNames: string[]) => {
+  const control: { [key: string]: boolean } = {};
+  for (const cityIndex in cityNames) {
+    const city = cityNames[cityIndex];
+    if (cityOwner(s, city) === index) {
+      control[city] = true;
+    }
+  }  
+  return Object.keys(control).length
+}
+
 /**
  * Returns the city owner.
  * If nobody owns it, returns -1;
