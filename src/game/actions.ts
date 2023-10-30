@@ -8,6 +8,8 @@ import {
   getPost,
   incomeValue,
   totalPointsDetails,
+  totalPointsDetailsHeader,
+  totalPointsDetailsFooter,
 } from "./helpers";
 import { ActionName, ActionParams, PhaseContext, GameState, TokenState, Reward, ActionRecord } from "./model";
 
@@ -20,6 +22,7 @@ export const executeAction = <T extends ActionName>(
   state: GameState,
   params?: ActionParams<T>
 ): PhaseContext => {
+  // consoleLogTotalDetails(state);
   switch (name) {
     case "income":
       return IncomeAction(state);
@@ -84,14 +87,7 @@ export const DoneAction = (s: GameState) => {
   s.turn += 1;
 
   if (s.isOver) {
-    s.log.push({ player: -1, message: "┌────name────┬─total─┬─points─┬─network─┬─control─┬─upgrades─┬─markers─┬─barrels─┐" });
-    s.players.map((p, i) => {
-      s.log.push({
-        player: i,
-        message: totalPointsDetails(s, i)
-      })
-    })
-    s.log.push({ player: -1, message: "└────────────┴───────┴────────┴─────────┴─────────┴──────────┴─────────┴─────────┘" })
+    logTotalDetails(s);
   } else {
     s.log.push({
       message: `It's ${s.players[s.turn % s.players.length].name}'s turn`,
@@ -106,6 +102,26 @@ export const DoneAction = (s: GameState) => {
     hand: [],
   } as PhaseContext;
 };
+
+function logTotalDetails(s: GameState) {
+  s.log.push({ player: -1, message: totalPointsDetailsHeader(s) });
+  s.players.map((p, i) => {
+    s.log.push({
+      player: i,
+      message: totalPointsDetails(s, i)
+    });
+  })
+  s.log.push({ player: -1, message: totalPointsDetailsFooter(s) });
+}
+
+function consoleLogTotalDetails(s: GameState) {
+  console.log(totalPointsDetailsHeader(s));
+  s.players.map((p, i) => {
+    console.log(totalPointsDetails(s, i));
+  })
+  console.log(totalPointsDetailsFooter(s));
+}
+
 
 /**
  * Moves 3/5/7/All merchants / tradesmen from the general reserve to the personal supply.

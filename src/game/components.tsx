@@ -11,8 +11,9 @@ import {
   getPlayer,
   incomeValue,
   totalPoints,
-  pointsForBonusCitiesPresence,
-  pointsForBonusCitiesOwned,
+  getExpansionCard,
+  pointsForExpCardCitiesPresence,
+  pointsForExpCardCitiesOwned,
 } from "./helpers";
 import { defaultController, GameController, useController } from "./controller";
 
@@ -105,7 +106,7 @@ const usePanZoom = (rebind = false) => {
 /**
  * Renders just the map, for development purposes
  */
-const testState = initGameState({ red: "red", green: "green", blue: "blue" });
+const testState = initGameState({ red: "red", green: "green", blue: "blue" }, false, false);
 export const Map = () => {
   const { groupRef, svgRef, scale, x, y, panStart, pan, panEnd, zoom } = usePanZoom();
   const { map } = testState;
@@ -542,12 +543,12 @@ export const CityComponent = ({ cityName, highlighted}: { cityName: string, high
         <text
           className="upgrade-text"
           fill="black"
-          fontSize={12}
+          fontSize={18}
           fontFamily="Monospace"
           fontWeight="400"
           letterSpacing="0em"
         >
-          <tspan textAnchor="middle" x={cityWidth / 2} y={CityHeight + FontSize + 5}>
+          <tspan textAnchor="middle" x={cityWidth / 2} y={CityHeight + FontSize + 10}>
             {city.upgrade}
           </tspan>
         </text>
@@ -692,6 +693,9 @@ export const TradingPostComponent = ({
   } = useContext(ControllerContext);
   const token = state.routes[address[0]].tokens[address[1]];
   const owner = token && state.players[token.owner];
+  const insideTraderPhFactor = 0.6;
+  const insideTraderColor = '#b3b3b3';
+  // const insideTraderColor = 'gray';
 
   const onClick: MouseEventHandler<SVGGElement> = (e) => {
     const placeMerchant = getPlayer(state).personalSupply.m > 0 && (e.shiftKey || merch);
@@ -721,7 +725,12 @@ export const TradingPostComponent = ({
 
   return (
     <g className="trading-post" onClick={onClick}>
-      <circle cx={pos.x} cy={pos.y} r={PostRadius} fill="white" stroke="black" strokeWidth={PostRadius / 4} />
+      <circle cx={pos.x} cy={pos.y} r={PostRadius} fill="white" stroke="black" strokeWidth={PostRadius / 8} />
+      <rect x={pos.x - PostRadius * insideTraderPhFactor} y={pos.y - PostRadius * insideTraderPhFactor}
+        width={PostRadius * 2 * insideTraderPhFactor}
+        height={PostRadius * 2 * insideTraderPhFactor}
+        fill="white" stroke={insideTraderColor} strokeWidth={PostRadius / 8} />
+
       {owner &&
         (token.merch ? (
           <circle cx={pos.x} cy={pos.y} r={PostRadius} fill={playerColor(owner.color)} strokeWidth="2" stroke="white" />
@@ -803,8 +812,10 @@ export const InlineMarker = ({ kind }: { kind: BonusMarkerKind }) => {
 
 export const BonusCityName = ({cityName}: {cityName: string}) => {
   const { ui, controller } = useContext(ControllerContext);
+  const key = "bonus-city-" + cityName;
+  const owner = controller.state.players[cityOwner(controller.state, cityName)];
   return (
-    <span className="bonus-city" 
+    <span key={key} className="bonus-city" style={{ color: owner ? playerColor(owner.color) : "black" }}
     onMouseOver={() => {
       ui.setHighlighted([cityName])
     }} 
@@ -813,23 +824,25 @@ export const BonusCityName = ({cityName}: {cityName: string}) => {
     }}     
     onMouseOut={() =>
       ui.setHighlighted([''])
-    }>{cityName}&nbsp;</span>  )
+    }>{cityName}&nbsp;</span>
+  )
 }
 
 export const BonusCityCard = ({ player }: { player: PlayerState }) => {
   const { ui, controller } = useContext(ControllerContext);
-  const cardsList = ["Minden", "Hildesheim", "Luneburg"];
-  const presencePoints = pointsForBonusCitiesPresence(controller.state, controller.state.players.findIndex((p) => p === player), cardsList);
-  const controlPoints = pointsForBonusCitiesOwned(controller.state, controller.state.players.findIndex((p) => p === player), cardsList);;
+  const playerIndex = controller.state.players.findIndex((p) => p === player);
+  const cardsList = getExpansionCard(controller.state.id, playerIndex);
+  const presencePoints = pointsForExpCardCitiesPresence(controller.state, playerIndex, cardsList);
+  const controlPoints = pointsForExpCardCitiesOwned(controller.state, playerIndex, cardsList);;
 
   return (
-    <div className="exp-card">
-      Bonus:&nbsp;
+    <div key="exp-card" className="exp-card">
+      Card:&nbsp;
       {cardsList.map((cityName) => (
-        <BonusCityName cityName={cityName} />
+        <BonusCityName key={cityName} cityName={cityName} />
       ))}
       <br />
-      presence (+1 VP/each): {presencePoints}<br />
+      presence (+1VP/each): {presencePoints}<br />
       control all (+5VP): {controlPoints}
     </div>
   )
@@ -850,14 +863,18 @@ export const PlayerQuickInfo = ({ player }: { player: PlayerState }) => {
     <div className={`player-info ${player.color}`}>
       <h2 style={{ color: playerColor(player.color) }}>
         {player.name}: {player.points}
-        <span className="score">
-          (
-          {totalPoints(
-            state,
-            state.players.findIndex((p) => p === player)
-          )}
+        {
+          (!controller.state.hideTotalScore || !state.isOver) && (
+            <span className="score">
+              (
+              {totalPoints(
+                state,
+                state.players.findIndex((p) => p === player)
+              )}
+              )
+            </span>
           )
-        </span>
+        }
       </h2>
       <div className="rack flex">
         <div className="left">
@@ -910,7 +927,7 @@ export const PlayerQuickInfo = ({ player }: { player: PlayerState }) => {
           ))}
         </div>
       </div> {
-        (getPlayer(state).id === player.id || state.isOver) && 
+        (state.useCardExpansion && (getPlayer(state).id === player.id || state.isOver)) && 
         (
           <BonusCityCard player={player} />
         )

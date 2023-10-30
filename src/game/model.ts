@@ -200,6 +200,16 @@ export type GameState = {
   players: PlayerState[];
 
   /**
+   * Use cards expansion
+   */
+  useCardExpansion: boolean;
+
+  /**
+   * Hide total score
+   */
+  hideTotalScore: boolean;
+
+  /**
    * Cities' states. In the same order as the map definition
    */
   cities: { [key: string]: CityState };
@@ -287,7 +297,7 @@ export const initPlayersState = (players: { [key in Color]?: string }) => {
   return shuffledPlayers;
 }
 
-export const initGameState = (players: { [key in Color]?: string }): GameState => {
+export const initGameState = (players: { [key in Color]?: string }, useCardExpansion:boolean, hideTotalScore:boolean): GameState => {
   const map = Object.keys(players).length > 3 ? Standard4P : Standard3P;
   return {
     id: v4(),
@@ -299,6 +309,8 @@ export const initGameState = (players: { [key in Color]?: string }): GameState =
       hand: [],
     },
     players: initPlayersState(players),
+    useCardExpansion: useCardExpansion,
+    hideTotalScore: hideTotalScore,
     markers: [
       "Office",
       "Office",

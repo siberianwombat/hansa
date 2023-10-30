@@ -6,6 +6,8 @@ import { supabase } from "../src/supabase";
 function HomePage() {
   const router = useRouter();
   const [players, setPlayers] = useState<{ [key in Color]?: string }>({});
+  const [useCardExpansion, setUseCardExpansion] = useState(true);
+  const [hideTotalScore, setHideTotalScore] = useState(false);
   const count = Object.values(players).filter((v) => v.trim()).length;
 
   const createGame = async () => {
@@ -21,7 +23,7 @@ function HomePage() {
       return;
     }
 
-    const game = initGameState(pls);
+    const game = initGameState(pls, useCardExpansion, hideTotalScore);
     const { data, error } = await supabase.from("games").upsert([
       {
         id: game.id,
@@ -80,6 +82,21 @@ function HomePage() {
           value={players.purple || ""}
           onChange={(e) => setPlayers({ ...players, purple: e.currentTarget.value })}
         />
+      </div>
+      <div>
+        <input
+          type="checkbox"
+          checked
+          onChange={(e) => setUseCardExpansion(e.currentTarget.checked)}
+        />
+        <span>Use cards expansion</span>
+      </div>
+      <div>
+        <input
+          type="checkbox"
+          onChange={(e) => setHideTotalScore(e.currentTarget.checked)}
+        />
+        <span>Hide total score</span>
       </div>
       <div>
         <br />

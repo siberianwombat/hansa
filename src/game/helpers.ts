@@ -251,6 +251,7 @@ export const areCitiesLinked = (s: GameState, from: string, to: string, p: numbe
 export const totalPoints = (s: GameState, index: number) => {
   const p = s.players[index];
   const m = p.usedMarkers.length + p.readyMarkers.length;
+  const cards = getExpansionCard(s.id, index);
   return (
     // Regular points
     p.points +
@@ -266,7 +267,10 @@ export const totalPoints = (s: GameState, index: number) => {
     // Points from coellen barrels
     s.coellen.map((t, i) => (t === index ? [7, 8, 9, 11][i] : 0)).reduce((a, b) => a + b) +
     // Points from controlled cities
-    (Object.keys(s.cities).map((c) => (cityOwner(s, c) === index ? 2 : 0)) as number[]).reduce((a, b) => a + b)
+    (Object.keys(s.cities).map((c) => (cityOwner(s, c) === index ? 2 : 0)) as number[]).reduce((a, b) => a + b) +
+    (s.useCardExpansion
+      ? pointsForExpCardCitiesPresence(s, index, cards) + pointsForExpCardCitiesOwned(s, index, cards)
+      : 0 )
   );
 };
 
@@ -279,6 +283,7 @@ export const totalPointsDetails = (s: GameState, index: number) => {
   const p = s.players[index];
   const m = p.usedMarkers.length + p.readyMarkers.length;
   const trimmedName = p.name.substring(0, 9);
+  const cards = getExpansionCard(s.id, index);
   const result = {
     markers: m > 9 ? 21 : m > 7 ? 15 : m > 5 ? 10 : m > 3 ? 6 : m > 1 ? 3 : m > 0 ? 1 : 0,
     upgrades: (p.book === 4 ? 4 : 0) +
@@ -288,9 +293,11 @@ export const totalPointsDetails = (s: GameState, index: number) => {
     network: largestNetwork(s, index) * (p.keys > 4 ? 4 : p.keys > 3 ? 3 : p.keys > 1 ? 2 : 1),
     barrels: s.coellen.map((t, i) => (t === index ? [7, 8, 9, 11][i] : 0)).reduce((a, b) => a + b),
     control: (Object.keys(s.cities).map((c) => (cityOwner(s, c) === index ? 2 : 0)) as number[]).reduce((a, b) => a + b),
+    card: pointsForExpCardCitiesPresence(s, index, cards) + pointsForExpCardCitiesOwned(s, index, cards)
   }
 
-  const total = p.points + result.markers + result.upgrades + result.barrels + result.network + result.control;
+  const total = p.points + result.markers + result.upgrades + result.barrels + result.network + result.control
+    + (s.useCardExpansion ? result.card : 0);
 
   return '| ' + (" ".repeat(10 - trimmedName.length)) + trimmedName 
     + " | " + (" ".repeat(5 - (total > 9 ? 2 : 1))) + (total > 0 ? total : '-')
@@ -300,14 +307,29 @@ export const totalPointsDetails = (s: GameState, index: number) => {
     + " | " + " ".repeat(8 - (result.upgrades > 9 ? 2 : 1)) + (result.upgrades > 0 ? result.upgrades : '-')
     + " | " + " ".repeat(7 - (result.markers > 9 ? 2 : 1)) + (result.markers > 0 ? result.markers : '-')
     + " | " + " ".repeat(7 - (result.barrels > 9 ? 2 : 1)) + (result.barrels > 0 ? result.barrels : '-')
+    + (s.useCardExpansion 
+      ? " | " + " ".repeat(4 - (result.card > 9 ? 2 : 1)) + (result.card > 0 ? result.card : '-')
+      : '')
     + " |";
 }
 
-export const pointsForBonusCitiesPresence = (s: GameState, index: number, cityNames: string[]) => {
-  return bonusCitiesPresence(s, index, cityNames)
+export const totalPointsDetailsHeader = (s: GameState) => {
+  return '┌────name────┬─total─┬─points─┬─network─┬─control─┬─upgrades─┬─markers─┬─barrels─' 
+  + (s.useCardExpansion ? '┬─card─' : '')
+  + '┐';
 }
 
-export const bonusCitiesPresence = (s: GameState, index: number, cityNames: string[]) => {
+export const totalPointsDetailsFooter = (s: GameState) => {
+  return '└────────────┴───────┴────────┴─────────┴─────────┴──────────┴─────────┴─────────'
+    + (s.useCardExpansion ? '┴──────' : '')
+    + '┘';
+}
+
+export const pointsForExpCardCitiesPresence = (s: GameState, index: number, cityNames: string[]) => {
+  return expCardCitiesPresence(s, index, cityNames)
+}
+
+export const expCardCitiesPresence = (s: GameState, index: number, cityNames: string[]) => {
   const presence: {[key: string]: boolean } = {};
   for (const cityIndex in cityNames) {
     const city = cityNames[cityIndex];
@@ -321,11 +343,11 @@ export const bonusCitiesPresence = (s: GameState, index: number, cityNames: stri
   return Object.keys(presence).length
 }
 
-export const pointsForBonusCitiesOwned = (s: GameState, index: number, cityNames: string[]) => {
-  return (bonusCitiesOwned(s, index, cityNames) === 3 ? 5 : 0);
+export const pointsForExpCardCitiesOwned = (s: GameState, index: number, cityNames: string[]) => {
+  return (expCardCitiesOwned(s, index, cityNames) === 3 ? 5 : 0);
 }
 
-export const bonusCitiesOwned = (s: GameState, index: number, cityNames: string[]) => {
+export const expCardCitiesOwned = (s: GameState, index: number, cityNames: string[]) => {
   const control: { [key: string]: boolean } = {};
   for (const cityIndex in cityNames) {
     const city = cityNames[cityIndex];
@@ -334,6 +356,59 @@ export const bonusCitiesOwned = (s: GameState, index: number, cityNames: string[
     }
   }  
   return Object.keys(control).length
+}
+
+export const getExpansionCard = (gameId: string, index: number) => {
+  const cards = [
+    ['Groningen', 'Kampen', 'Arnheim'],
+    ['Duisburg', 'Kampen', 'Arnheim'],
+    ['Duisburg', 'Coellen', 'Arnheim'],
+    ['Duisburg', 'Coellen', 'Emden'],
+    ['Osnabruck', 'Coellen', 'Emden'],
+    ['Osnabruck', 'Munster', 'Emden'],
+    ['Hildesheim', 'Minden', 'Osnabruck'],
+    ['Stade', 'Munster', 'Dortmund'],
+    ['Stade', 'Bremen', 'Gottingen'],
+  ]
+
+  function cyrb128(str: string) {
+    let h1 = 1779033703, h2 = 3144134277,
+      h3 = 1013904242, h4 = 2773480762;
+    for (let i = 0, k; i < str.length; i++) {
+      k = str.charCodeAt(i);
+      h1 = h2 ^ Math.imul(h1 ^ k, 597399067);
+      h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
+      h3 = h4 ^ Math.imul(h3 ^ k, 951274213);
+      h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
+    }
+    h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067);
+    h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
+    h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213);
+    h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
+    h1 ^= (h2 ^ h3 ^ h4), h2 ^= h1, h3 ^= h1, h4 ^= h1;
+    return [h1 >>> 0, h2 >>> 0, h3 >>> 0, h4 >>> 0];
+  }
+  function shuffle(array: string[][], seed: number) {
+    var m = array.length, t, i;
+    while (m) {
+      i = Math.floor(random(seed) * m--);
+      t = array[m];
+      array[m] = array[i];
+      array[i] = t;
+      ++seed;
+    }
+    return array;
+  }
+
+  function random(seed: number) {
+    var x = Math.sin(seed++) * 10000;
+    return x - Math.floor(x);
+  }
+
+  const seed = cyrb128(gameId);
+  const suffledCards = shuffle(cards, seed[0]);
+
+  return suffledCards[index];
 }
 
 /**
