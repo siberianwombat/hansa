@@ -725,7 +725,7 @@ export const TradingPostComponent = ({
 
   return (
     <g className="trading-post" onClick={onClick}>
-      <circle cx={pos.x} cy={pos.y} r={PostRadius} fill="white" stroke="black" strokeWidth={PostRadius / 8} />
+      <circle cx={pos.x} cy={pos.y} r={PostRadius} fill="white" stroke="black" strokeWidth={PostRadius / 4} />
       <rect x={pos.x - PostRadius * insideTraderPhFactor} y={pos.y - PostRadius * insideTraderPhFactor}
         width={PostRadius * 2 * insideTraderPhFactor}
         height={PostRadius * 2 * insideTraderPhFactor}
