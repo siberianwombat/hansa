@@ -6,7 +6,7 @@ import { supabase } from "../src/supabase";
 function HomePage() {
   const router = useRouter();
   const [players, setPlayers] = useState<{ [key in Color]?: string }>({});
-  const [useCardExpansion, setUseCardExpansion] = useState(true);
+  const [useCardExpansion, setUseCardExpansion] = useState(false);
   const [hideTotalScore, setHideTotalScore] = useState(false);
   const count = Object.values(players).filter((v) => v.trim()).length;
 
@@ -86,7 +86,6 @@ function HomePage() {
       <div>
         <input
           type="checkbox"
-          checked
           onChange={(e) => setUseCardExpansion(e.currentTarget.checked)}
         />
         <span>Use cards expansion</span>
