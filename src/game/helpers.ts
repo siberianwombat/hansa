@@ -360,16 +360,16 @@ export const expCardCitiesOwned = (s: GameState, index: number, cityNames: strin
 
 export const getExpansionCard = (gameId: string, index: number) => {
   const cards = [
-    ['Groningen', 'Kampen', 'Arnheim'],
-    ['Duisburg', 'Kampen', 'Arnheim'],
-    ['Duisburg', 'Coellen', 'Arnheim'],
-    ['Duisburg', 'Coellen', 'Emden'],
-    ['Osnabruck', 'Coellen', 'Emden'],
-    ['Osnabruck', 'Munster', 'Emden'],
-    ['Hildesheim', 'Minden', 'Osnabruck'],
-    ['Stade', 'Munster', 'Dortmund'],
-    ['Stade', 'Bremen', 'Gottingen'],
-  ]
+    [ "Dortmund", "Stendal", "Kampen" ],
+    [ "Dortmund", "Minden", "Luneburg" ],
+    [ "Osnabruck", "Stendal", "Paderborn" ],
+    [ "Arnheim", "Perleberg", "Bremen" ],
+    [ "Minden", "Perleberg", "Goslar" ],
+    [ "Arnheim", "Osnabruck", "Hildesheim" ],
+    [ "Arnheim", "Perleberg", "Hannover" ],
+    [ "Minden", "Osnabruck", "Magdeburg" ],
+    [ "Dortmund", "Stendal", "Munster" ],
+  ];
 
   function cyrb128(str: string) {
     let h1 = 1779033703, h2 = 3144134277,
