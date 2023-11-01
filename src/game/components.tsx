@@ -864,7 +864,7 @@ export const PlayerQuickInfo = ({ player }: { player: PlayerState }) => {
       <h2 style={{ color: playerColor(player.color) }}>
         {player.name}: {player.points}
         {
-          (!controller.state.hideTotalScore && !state.isOver) && (
+          (state.isOver || !controller.state.hideTotalScore) && (
             <span className="score">
               (
               {totalPoints(
