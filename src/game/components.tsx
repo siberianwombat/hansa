@@ -864,7 +864,7 @@ export const PlayerQuickInfo = ({ player }: { player: PlayerState }) => {
       <h2 style={{ color: playerColor(player.color) }}>
         {player.name}: {player.points}
         {
-          (state.isOver || !controller.state.hideTotalScore) && (
+          (state.isOverShared || !controller.state.hideTotalScore) && (
             <span className="score">
               (
               {totalPoints(
@@ -927,7 +927,7 @@ export const PlayerQuickInfo = ({ player }: { player: PlayerState }) => {
           ))}
         </div>
       </div> {
-        (state.useCardExpansion && (me || state.isOver)) && 
+        (state.useCardExpansion && (me || state.isOverShared)) && 
         (
           <BonusCityCard player={player} />
         )

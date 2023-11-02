@@ -243,6 +243,8 @@ export type GameState = {
    * True if the game is over
    */
   isOver: boolean;
+
+  isOverShared: boolean;
 };
 
 import { Standard3P, Standard4P } from "./maps";
@@ -329,6 +331,7 @@ export const initGameState = (players: { [key in Color]?: string }, useCardExpan
     coellen: [null, null, null, null],
     log: [{ player: -1, message: "A new game begins!" }],
     isOver: false,
+    isOverShared: false,
     map,
     ...initMapState(map),
   };

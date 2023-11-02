@@ -69,6 +69,18 @@ export const DoneAction = (s: GameState) => {
     return s.context;
   }
 
+  if (s.isOver) {
+    logTotalDetails(s);
+    s.turn += 1;
+    s.isOverShared = true;
+    return {
+      phase: "Actions",
+      player: s.turn % s.players.length,
+      actions: [],
+      hand: [],
+    } as PhaseContext;
+  }
+
   // When you end your turn, you must place all unplaced markers
   if (getPlayer(s).unplacedMarkers.length > 0) {
     return {
@@ -85,15 +97,11 @@ export const DoneAction = (s: GameState) => {
   }
 
   s.turn += 1;
-
-  if (s.isOver) {
-    logTotalDetails(s);
-  } else {
-    s.log.push({
-      message: `It's ${s.players[s.turn % s.players.length].name}'s turn`,
-      player: s.turn % s.players.length,
-    });
-  }
+  
+  s.log.push({
+    message: `It's ${s.players[s.turn % s.players.length].name}'s turn`,
+    player: s.turn % s.players.length,
+  });  
 
   return {
     phase: "Actions",
