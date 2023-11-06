@@ -360,6 +360,16 @@ div.token {
   font-weight: bold;
 }
 
+.hightlight-victory-option {
+  // animation: blinker 1s linear infinite;
+  color: black;
+  font-weight: bold;
+  padding: 1px 10px;
+  background-color: lighten(red, 30%);
+  border: 1px;
+  border-radius: 5px;
+}
+
 @keyframes blinker {
   50% {
     opacity: 0;

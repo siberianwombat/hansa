@@ -19,6 +19,7 @@ import { defaultController, GameController, useController } from "./controller";
 
 // Nice yellow: #EEBC1D
 const playerColor = (color: Color) => (color === "yellow" ? "#954535" : color);
+// const PrivilegeColorMap = ["white", "#ffce73", "rgb(255, 182, 223)", "lightgray"];
 const PrivilegeColorMap = ["white", "#F2AC29", "rgb(255, 145, 207)", "gray"];
 const CityColorMap = (color: City["color"]) => (color === "red" ? "#faa" : color === "yellow" ? "#ffa" : "white");
 const FontSize = 24;
@@ -228,6 +229,9 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
 
   const alertOverlayMsg = ctrl.state.context.phase === "Displacement" ? <div><p>You were kicked!</p><p>Place your tokens.</p></div> : "It's your turn!";
   const alertClasses = alertState ? "alert-overlay" : "hide";
+  const warningMarkersClass = ctrl.state.markers.length <= 1 ? 'hightlight-victory-option' : '';
+  const warningFullCitiesClass = fullCityCount(ctrl.state) >= 8 ? 'hightlight-victory-option' : '';
+  const warningVPs = maxPoints >= 17 ? 'hightlight-victory-option' : '';
 
   return (
     <ControllerContext.Provider value={{ controller: ctrl, ui: { merch, setMerch, highlighted, setHighlighted } }}>
@@ -244,7 +248,10 @@ export const App = ({ gameId, playerId }: { gameId: string; playerId: string }) 
               <span className="blink-me">{err}</span>
             ) : (
               <>
-                  Markers: {ctrl.state.markers.length} | Full Cities: {fullCityCount(ctrl.state)}/10 | VPs: {maxPoints}/20
+                  <span className={warningMarkersClass}> Markers: {ctrl.state.markers.length}
+                  </span> | <span className={warningFullCitiesClass}>Full Cities: {fullCityCount(ctrl.state)}/10
+                  </span> | <span className={warningVPs}> VPs: {maxPoints}/20
+                  </span>
               </>
             )}
           </div>
